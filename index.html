@@ -1,92 +1,77 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fiberlux Acoustics Calculator v0.1</title>
-    <link rel="stylesheet" href="/styles/style.css">
-</head>
-<body>
-<main>
-  <h1>Fiberlux Acoustics Calculator v0.1</h1>
-  <p class="sub">Calculated estimate of the sound absorption of felt made from textile waste</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiberlux Acoustics Calculator v0.2</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Fiberlux Acoustics Calculator v0.2</h1>
+      <p class="sub">Calculated estimate of the sound absorption of felt made from textile waste</p>
 
-  <div class="card grid">
-    <div><label>Thickness: <span class="val" id="vt"></span> mm</label>
-      <input id="t" type="range" min="10" max="100" step="5" value="40"><div class="hint">A thicker panel absorbs more bass.
-    </div></div>
-    <div><label>Density: <span class="val" id="vr"></span> kg/m³</label>
-      <input id="r" type="range" min="25" max="150" step="5" value="60"><div class="hint">Too sparse—it doesn't stop; too dense—it reflects.
-    </div></div>
-    <div><label>Behind the air gap:
-        <span class="val" id="vg"></span> mm</label>
-      <input id="g" type="range" min="0" max="200" step="10" value="0"><div class="hint">0 = directly on the wall; 200 = suspended ceiling</div></div>
-  </div>
+      <div class="card grid">
+        <div>
+          <label for="t">Thickness: <span class="val" id="vt"></span> mm</label>
+          <input id="t" type="range" min="10" max="100" step="5" value="40" />
+          <div class="hint">A thicker panel absorbs more bass.</div>
+        </div>
+        <div>
+          <label for="r">Density: <span class="val" id="vr"></span> kg/m³</label>
+          <input id="r" type="range" min="50" max="140" step="5" value="70" />
+          <div class="hint">Too sparse — sound passes through; too dense — it reflects.</div>
+        </div>
+        <div>
+          <label for="g">Air gap behind panel: <span class="val" id="vg"></span> mm</label>
+          <input id="g" type="range" min="0" max="200" step="10" value="0" />
+          <div class="hint">0 = directly on the wall; 200 = suspended ceiling</div>
+        </div>
+        <div>
+          <label for="m">Model</label>
+          <select id="m">
+            <option value="miki" selected>Miki (1990)</option>
+            <option value="db">Delany–Bazley (1970)</option>
+          </select>
+          <div class="hint">Miki is more reliable for dense felt and low frequencies.</div>
+        </div>
+      </div>
 
-  <div class="card res">
-    <div><div class="hint">Sound absorption class</div><div class="big" id="cls"></div></div>
-    <div><div class="hint">αw</div><div class="big" id="aw"></div></div>
-    <div><div class="hint">NRC</div><div class="big" id="nrc"></div></div>
-  </div>
+      <div id="warn" class="warn" role="status" hidden></div>
 
-  <div class="card"><canvas id="c" width="840" height="280"></canvas>
-    <table id="tab"></table></div>
+      <div class="card res">
+        <div>
+          <div class="hint">Sound absorption class</div>
+          <div class="big" id="cls"></div>
+        </div>
+        <div>
+          <div class="hint">αw</div>
+          <div class="big" id="aw"></div>
+        </div>
+        <div>
+          <div class="hint">NRC</div>
+          <div class="big" id="nrc"></div>
+        </div>
+      </div>
 
-  <p class="note">Computational estimate based on a scientific model, not a laboratory measurement. Model: Delany–Bazley (1970), with airflow resistance calibrated based on measurements of airlaid panels made from textile waste (Rubino et al., 2023, Journal of Cleaner Production 390). Absorption is calculated for sound at normal incidence; the classification according to the ISO 11654 method is approximate.</p>
-</main>
-<script>
-// --- complex numbers ---
-const C=(re,im=0)=>({re,im});
-const add=(a,b)=>C(a.re+b.re,a.im+b.im), mul=(a,b)=>C(a.re*b.re-a.im*b.im,a.re*b.im+a.im*b.re);
-const div=(a,b)=>{const d=b.re*b.re+b.im*b.im;return C((a.re*b.re+a.im*b.im)/d,(a.im*b.re-a.re*b.im)/d)};
-const tan=z=>{const a=2*z.re,b=2*z.im,d=Math.cos(a)+Math.cosh(b);return C(Math.sin(a)/d,Math.sinh(b)/d)};
-const abs=z=>Math.hypot(z.re,z.im);
-// --- physics ---
-const RHO0=1.21, C0=343, Z0=RHO0*C0;
-// airflow resistance [Pa·s/m²], calibrated: 68 kg/m³ -> 17 400; 134 kg/m³ -> 95 500 (Rubino 2023)
-const sigma=rho=>17400*Math.pow(rho/68,2.51);
-function alpha(f,tMM,rho,gMM){
-  const X=RHO0*f/sigma(rho), k0=2*Math.PI*f/C0, j=C(0,1);
-  const Zc=C(Z0*(1+0.0571*X**-0.754), -Z0*0.087*X**-0.732);
-  const k =C(k0*(1+0.0978*X**-0.700), -k0*0.189*X**-0.595);
-  const t=tan(mul(k,C(tMM/1000)));
-  let Zs;
-  if(gMM<=0) Zs=div(Zc,mul(j,t)); 
-  // felt directly on a rigid wall
-  else{ const Zb=div(C(Z0),mul(j,C(Math.tan(k0*gMM/1000)))); // air gap impedances
-        Zs=mul(Zc,div(add(Zb,mul(j,mul(Zc,t))),add(Zc,mul(j,mul(Zb,t))))); }
-  const R=div(add(Zs,C(-Z0)),add(Zs,C(Z0)));
-  return Math.max(0,1-abs(R)**2);
-}
-// ISO 11654: αw and ciflass in octaves 250..4000 Hz
-function rate(p){
-  const ap=p.map(a=>Math.min(1,Math.round(a*20)/20)), ref=[0.8,1,1,1,0.9];
-  let s=0; for(;s<=1;s+=0.05){const dev=ap.reduce((acc,a,i)=>acc+Math.max(0,ref[i]-s-a),0); if(dev<=0.1001)break;}
-  const aw=Math.max(0,Math.round((1-s)*20)/20);
-  const cls=aw>=0.9?'A':aw>=0.8?'B':aw>=0.6?'C':aw>=0.3?'D':aw>=0.15?'E':'–';
-  const nrc=Math.round((ap[0]+ap[1]+ap[2]+ap[3])/4*20)/20;
-  return {aw,cls,nrc};
-}
-// --- user interface ---
-const $=id=>document.getElementById(id);
-function draw(){
-  const t=+$('t').value, r=+$('r').value, g=+$('g').value;
-  $('vt').textContent=t; $('vr').textContent=r; $('vg').textContent=g;
-  const oct=[125,250,500,1000,2000,4000], a=oct.map(f=>alpha(f,t,r,g));
-  const res=rate(a.slice(1));
-  $('cls').textContent=res.cls; $('aw').textContent=res.aw.toFixed(2); $('nrc').textContent=res.nrc.toFixed(2);
-  $('tab').innerHTML='<tr><th>Hz</th>'+oct.map(f=>'<th>'+f+'</th>').join('')+'</tr><tr><td>α</td>'+a.map(x=>'<td>'+x.toFixed(2)+'</td>').join('')+'</tr>';
-  // graph / chart
-  const cv=$('c'), x=cv.getContext('2d'), W=cv.width, H=cv.height, L=40, B=30;
-  const css=getComputedStyle(document.documentElement);
-  x.clearRect(0,0,W,H); x.font='12px system-ui'; x.fillStyle=css.getPropertyValue('--muted'); x.strokeStyle=css.getPropertyValue('--line');
-  for(let v=0;v<=1.0001;v+=0.2){const y=H-B-v*(H-B-10); x.beginPath(); x.moveTo(L,y); x.lineTo(W-10,y); x.stroke(); x.fillText(v.toFixed(1),8,y+4);}
-  const fx=f=>L+(Math.log(f/100)/Math.log(5000/100))*(W-L-10);
-  oct.forEach(f=>x.fillText(f,fx(f)-12,H-10));
-  x.strokeStyle=css.getPropertyValue('--accent'); x.lineWidth=3; x.beginPath();
-  for(let f=100;f<=5000;f*=1.03){const y=H-B-alpha(f,t,r,g)*(H-B-10); f===100?x.moveTo(fx(f),y):x.lineTo(fx(f),y);} x.stroke(); x.lineWidth=1;
-}
-['t','r','g'].forEach(id=>$(id).addEventListener('input',draw)); draw();
-</script>
-</body>
+      <div class="card">
+        <div class="legend">
+          <span><i class="sw solid"></i>Diffuse incidence (used for class)</span>
+          <span><i class="sw dash"></i>Normal incidence (comparison)</span>
+        </div>
+        <canvas id="c" aria-label="Sound absorption coefficient versus frequency"></canvas>
+        <div class="tablewrap"><table id="tab"></table></div>
+      </div>
+
+      <p class="note">
+        Computational estimate based on a scientific model, not a laboratory measurement. Felt
+        model: Delany–Bazley (1970) or Miki (1990). Airflow resistivity is calibrated on measured
+        airlaid panels made from textile waste (Rubino et al., 2023). Class, αw and NRC are
+        calculated for diffuse sound (Paris integral, extended reaction) following the ISO 11654
+        method from octave values; a reverberation-room measurement (ISO 354) can differ.
+      </p>
+    </main>
+    <script src="index.js"></script>
+    <script src="chart.js"></script>
+  </body>
 </html>
