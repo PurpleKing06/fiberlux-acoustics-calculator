@@ -101,7 +101,7 @@ function readInputs() {
   const L = clampInput("L", 8, "m"),
     W = clampInput("W", 7, "m"),
     H = clampInput("H", 3, "m");
-  $("win").max = f1(2 * (L + W) * H); // windows can't exceed the wall area
+  $("win").max = f1(0.5 * 2 * (L + W) * H); // windows: at most half of the wall area
   if (!winEdited) $("win").value = f1(0.1 * L * W);
   return {
     L,
@@ -133,8 +133,13 @@ function variantCard(v, target) {
   }
   if (!v.feasible)
     html += `<div class="warnline">Not enough ceiling and wall area for this product — choose a thicker panel.</div>`;
-  if (v.bass)
-    html += `<div class="warnline">Bass (125–250 Hz) stays above 1.5 × target. Use Premium or mount with an air gap.</div>`;
+  if (v.bass) {
+    const tip =
+      v.name === "Premium"
+        ? "Mount the panels with an air gap behind them."
+        : "Use Premium or mount with an air gap.";
+    html += `<div class="warnline">Bass (125–250 Hz) stays above 1.5 × target. ${tip}</div>`;
+  }
   return html + "</div>";
 }
 
@@ -171,11 +176,13 @@ function draw(hx = null) {
     B = 24,
     T = 10,
     R = 10;
-  const tmax = Math.max(1, Math.ceil(Math.max(...r.T0) * 2) / 2);
+  const top = Math.max(1, ...r.T0);
+  const step = top <= 2 ? 0.5 : top <= 5 ? 1 : top <= 10 ? 2 : 5; // about 5 grid lines
+  const tmax = Math.ceil(top / step) * step;
   const fy = (t) => H - B - (Math.min(t, tmax) / tmax) * (H - B - T);
   const fx = (i) => L + (i / (BANDS.length - 1)) * (W - L - R);
 
-  drawGrid(x, { L, R, W, max: tmax, step: tmax > 4 ? 1 : 0.5, fy });
+  drawGrid(x, { L, R, W, max: tmax, step, fy });
   x.textAlign = "center";
   BANDS.forEach((f, i) => {
     if (!narrow || i % 2 === 0) x.fillText(freqLabel(f), fx(i), H - B / 2);
@@ -264,7 +271,14 @@ function downloadPdf() {
       5,
     );
     if (!v.feasible) ln("  Not enough surface area for this product.", 10, 5);
-    if (v.bass) ln("  Bass stays above 1.5 x target: use Premium or an air gap.", 10, 5);
+    if (v.bass)
+      ln(
+        v.name === "Premium"
+          ? "  Bass stays above 1.5 x target: mount with an air gap."
+          : "  Bass stays above 1.5 x target: use Premium or an air gap.",
+        10,
+        5,
+      );
     y += 4;
   });
   ln("CO2 data: to be assessed during the EIT Spark programme.", 10, 8);
