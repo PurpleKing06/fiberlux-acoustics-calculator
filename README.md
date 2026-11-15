@@ -94,8 +94,8 @@ Open `index.html` in any modern browser, or use the GitHub Pages version. No ins
  
 ## About
  
-Fiberlux · [fiberlux.ee](https://www.fiberlux.ee)
- 
-Version 0.2 — diffuse-field estimate, Miki model, validity warning, mobile layout.
+**Fiberlux** · [fiberlux.ee](https://www.fiberlux.ee)
+
+**Live calculator:** https://purpleking06.github.io/fiberlux-acoustics-calculator/
  
 © 2026 Martin Toom & Kristen Toom. All rights reserved.
