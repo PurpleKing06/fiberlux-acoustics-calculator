@@ -132,7 +132,7 @@ function variantCard(v, target) {
       ` · Secondary fibre: ${Math.round(v.kg)} kg</div>`;
   }
   if (!v.feasible)
-    html += `<div class="warnline">Not enough ceiling and wall area for this product — choose a thicker panel.</div>`;
+    html += `<div class="warnline">Uses all ceiling and wall area; target not reached at every frequency — choose a thicker panel.</div>`;
   if (v.bass) {
     const tip =
       v.name === "Premium"
@@ -241,6 +241,7 @@ function downloadPdf() {
   if (!window.jspdf) return window.print(); // fallback if the library did not load
   const { inp, r } = last;
   const doc = new window.jspdf.jsPDF();
+  const label = (id) => $(id).selectedOptions[0].text; // text as shown on the page
   let y = 20;
   const ln = (text, size = 11, gap = 7) => {
     doc.setFontSize(size);
@@ -250,8 +251,15 @@ function downloadPdf() {
   ln("Fiberlux Studio — Room acoustics specification", 16, 10);
   ln(`Date: ${new Date().toISOString().slice(0, 10)}`, 10, 10);
   ln(`Room: ${inp.typeName}, ${inp.L} x ${inp.W} x ${inp.H} m (V = ${f1(r.V)} m³)`);
+  const limited = ["L", "W", "H", "win"].filter((id) => $(id).classList.contains("out"));
+  if (limited.length)
+    ln(
+      `Note: ${limited.map((id) => $(id).labels[0].textContent).join(", ")} outside the allowed range — limit value used.`,
+      9,
+      6,
+    );
   ln(
-    `Floor: ${inp.floor}; walls: ${inp.walls}; ceiling: ${inp.ceiling}; windows: ${f1(inp.win)} m²`,
+    `Floor: ${label("floor")}; walls: ${label("walls")}; ceiling: ${label("ceiling")}; windows: ${f1(inp.win)} m²`,
   );
   ln(
     `Reverberation time now (500–1000 Hz): ${f2(tmid(r.T0))} s; target: ${f2(inp.target)} s`,
@@ -261,7 +269,8 @@ function downloadPdf() {
   r.variants.forEach((v) => {
     ln(`Fiberlux ${v.name} ${v.mm} mm`, 12, 6);
     ln(
-      `  Panel area: ${Math.ceil(v.S)} m² (${f1(v.onCeil)} m² ceiling, ${f1(v.onWall)} m² walls)`,
+      `  Panel area: ${Math.ceil(v.S)} m² (${f1(v.onCeil)} m² ceiling` +
+        (v.onWall > 0 ? `, ${f1(v.onWall)} m² walls)` : ")"),
       10,
       5,
     );
@@ -270,7 +279,8 @@ function downloadPdf() {
       10,
       5,
     );
-    if (!v.feasible) ln("  Not enough surface area for this product.", 10, 5);
+    if (!v.feasible)
+      ln("  Uses all ceiling and wall area; target not reached at every frequency.", 10, 5);
     if (v.bass)
       ln(
         v.name === "Premium"
