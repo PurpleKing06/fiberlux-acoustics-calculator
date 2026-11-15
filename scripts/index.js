@@ -100,6 +100,18 @@ function readInputs() {
   return { t: +$("t").value, r: +$("r").value, g: +$("g").value, m: $("m").value };
 }
 
+let curves = null; // cached chart data, so hovering does not recalculate
+
+function buildCurves(t, r, g, m) {
+  const c = { f: [], d: [], n: [] };
+  for (let f = 100; f <= 5000; f *= 1.04) {
+    c.f.push(f);
+    c.d.push(alphaDiffuse(f, t, r, g, m, 30));
+    c.n.push(alphaNormal(f, t, r, g, m));
+  }
+  return c;
+}
+
 function update() {
   const { t, r, g, m } = readInputs();
   $("vt").textContent = t;
@@ -128,10 +140,13 @@ function update() {
     row("α diffuse", aD) +
     row("α normal", aN);
 
-  draw(t, r, g, m);
+  curves = buildCurves(t, r, g, m);
+  draw();
 }
 
-function draw(t, r, g, m) {
+// hx = pointer x in CSS pixels for the tooltip, or null
+function draw(hx = null) {
+  if (!curves) return;
   const { x, W, H, narrow } = setupCanvas($("c"));
   const L = 34,
     B = 24,
@@ -144,28 +159,37 @@ function draw(t, r, g, m) {
   x.textAlign = "center";
   (narrow ? [125, 500, 2000] : BANDS).forEach((f) => x.fillText(freqLabel(f), fx(f), H - B / 2));
 
-  const curve = (fn) => {
-    const pts = [];
-    for (let f = 100; f <= 5000; f *= 1.04) pts.push([fx(f), fy(fn(f))]);
-    return pts;
-  };
-  drawLine(
-    x,
-    curve((f) => alphaNormal(f, t, r, g, m)),
-    cssVar("--muted"),
-    1.5,
-    [5, 4],
-  );
-  drawLine(
-    x,
-    curve((f) => alphaDiffuse(f, t, r, g, m, 30)),
-    cssVar("--accent"),
-    3,
-  );
+  const pts = (arr) => curves.f.map((f, i) => [fx(f), fy(arr[i])]);
+  drawLine(x, pts(curves.n), cssVar("--muted"), 1.5, [5, 4]);
+  drawLine(x, pts(curves.d), cssVar("--accent"), 3);
+
+  if (hx !== null && hx >= L && hx <= W - R) {
+    // nearest calculated frequency to the pointer
+    let i = 0;
+    curves.f.forEach((f, k) => {
+      if (Math.abs(fx(f) - hx) < Math.abs(fx(curves.f[i]) - hx)) i = k;
+    });
+    drawTooltip(x, {
+      px: fx(curves.f[i]),
+      W,
+      T,
+      bottom: H - B,
+      lines: [
+        `${Math.round(curves.f[i])} Hz`,
+        `α diffuse: ${f2(curves.d[i])}`,
+        `α normal: ${f2(curves.n[i])}`,
+      ],
+      dots: [
+        [fy(curves.d[i]), cssVar("--accent")],
+        [fy(curves.n[i]), cssVar("--muted")],
+      ],
+    });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   ["t", "r", "g", "m"].forEach((id) => $(id).addEventListener("input", update));
-  onResize($("c"), update);
+  onResize($("c"), () => draw());
+  hoverable($("c"), draw);
   update();
 });

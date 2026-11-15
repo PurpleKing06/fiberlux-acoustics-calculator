@@ -47,3 +47,7 @@ button {
   color: var(--card);
   cursor: pointer;
 }
+input.out {
+  border-color: #c0392b;
+  outline: 1px solid #c0392b;
+}

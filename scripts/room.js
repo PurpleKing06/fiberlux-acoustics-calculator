@@ -98,9 +98,10 @@ let winEdited = false; // stop auto-filling windows once the user types a value
 let last = null;
 
 function readInputs() {
-  const L = +$("L").value || 1,
-    W = +$("W").value || 1,
-    H = +$("H").value || 2;
+  const L = clampInput("L", 8, "m"),
+    W = clampInput("W", 7, "m"),
+    H = clampInput("H", 3, "m");
+  $("win").max = f1(2 * (L + W) * H); // windows can't exceed the wall area
   if (!winEdited) $("win").value = f1(0.1 * L * W);
   return {
     L,
@@ -109,7 +110,7 @@ function readInputs() {
     floor: $("floor").value,
     walls: $("walls").value,
     ceiling: $("ceiling").value,
-    win: Math.max(0, +$("win").value || 0),
+    win: clampInput("win", 0.1 * L * W, "m²"),
     target: +$("type").value,
     typeName: $("type").selectedOptions[0].text.replace(/ \(.*/, ""),
   };
@@ -161,7 +162,8 @@ function update() {
   draw();
 }
 
-function draw() {
+// hx = pointer x in CSS pixels for the tooltip, or null
+function draw(hx = null) {
   if (!last) return;
   const { r, inp } = last;
   const { x, W, H, narrow } = setupCanvas($("c"));
@@ -192,6 +194,30 @@ function draw() {
   );
   drawLine(x, pts(r.T0), cssVar("--ink"), 3);
   r.variants.forEach((v) => drawLine(x, pts(v.T1), cssVar(v.color), 2, v.dash));
+
+  if (hx !== null && hx >= L - 10 && hx <= W - R + 10) {
+    // nearest octave band to the pointer
+    const i = Math.max(
+      0,
+      Math.min(BANDS.length - 1, Math.round(((hx - L) / (W - L - R)) * (BANDS.length - 1))),
+    );
+    drawTooltip(x, {
+      px: fx(i),
+      W,
+      T,
+      bottom: H - B,
+      lines: [
+        `${BANDS[i]} Hz`,
+        `Now: ${f2(r.T0[i])} s`,
+        ...r.variants.map((v) => `${v.name}: ${f2(v.T1[i])} s`),
+        `Target: ${f2(inp.target)} s`,
+      ],
+      dots: [
+        [fy(r.T0[i]), cssVar("--ink")],
+        ...r.variants.map((v) => [fy(v.T1[i]), cssVar(v.color)]),
+      ],
+    });
+  }
 
   $("legend").innerHTML =
     `<span><i class="sw" style="border-top:3px solid var(--ink)"></i>Now</span>` +
@@ -232,12 +258,15 @@ function downloadPdf() {
       10,
       5,
     );
-    ln(`  Result (500–1000 Hz): ${f2(tmid(v.T1))} s; secondary fibre: ${Math.round(v.kg)} kg`, 10, 5);
+    ln(
+      `  Result (500–1000 Hz): ${f2(tmid(v.T1))} s; secondary fibre: ${Math.round(v.kg)} kg`,
+      10,
+      5,
+    );
     if (!v.feasible) ln("  Not enough surface area for this product.", 10, 5);
     if (v.bass) ln("  Bass stays above 1.5 x target: use Premium or an air gap.", 10, 5);
     y += 4;
   });
-  y += 4;
   ln("CO2 data: to be assessed during the EIT Spark programme.", 10, 8);
   ln("Indicative values. Empty room, Sabine formula; less accurate when absorption", 9, 5);
   ln("is concentrated on one surface. Laboratory validation during the EIT Spark programme.", 9, 5);
@@ -253,6 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }),
   );
   $("pdf").addEventListener("click", downloadPdf);
-  onResize($("c"), draw);
+  onResize($("c"), () => draw());
+  hoverable($("c"), draw);
   update();
 });
