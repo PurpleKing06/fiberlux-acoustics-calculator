@@ -1,0 +1,49 @@
+/* ===== room.css — room calculator ===== */
+
+.grid input[type="number"] {
+  width: 100%;
+  font: inherit;
+  padding: 4px 6px;
+  margin: 4px 0;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.ok {
+  color: var(--accent);
+}
+.bad {
+  color: #c0392b;
+}
+.variants {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.variants h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+.variants .num {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.variants .warnline {
+  color: var(--warn-ink);
+  background: var(--warn-bg);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
+button {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--card);
+  cursor: pointer;
+}

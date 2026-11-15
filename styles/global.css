@@ -1,3 +1,5 @@
+/* ===== global.css — shared by index.html and room.html ===== */
+
 /* Colours: OKLCH (perceptually uniform), with HEX fallback for older browsers.
    HEX values are also the ones to use in the brand book, Canva and print. */
 :root {
@@ -108,14 +110,6 @@ select {
   color: var(--muted);
   font-size: 0.8rem;
 }
-.warn {
-  background: var(--warn-bg);
-  color: var(--warn-ink);
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 16px;
-  font-size: 0.9rem;
-}
 .res {
   display: flex;
   gap: 24px;
@@ -133,18 +127,6 @@ select {
   font-size: 0.8rem;
   color: var(--muted);
   margin-bottom: 8px;
-}
-.sw {
-  display: inline-block;
-  width: 22px;
-  margin-right: 6px;
-  vertical-align: middle;
-}
-.sw.solid {
-  border-top: 3px solid var(--accent);
-}
-.sw.dash {
-  border-top: 2px dashed var(--muted);
 }
 canvas {
   display: block;
@@ -187,15 +169,21 @@ td:first-child {
   }
 }
 
+/* navigation between calculators */
+nav.top {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+nav.top a {
+  color: var(--accent);
+}
+.sw {
+  display: inline-block;
+  width: 22px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
 input[type="range"] {
   cursor: pointer;
   touch-action: none;
-}
-main {
-  -webkit-user-select: none;
-  user-select: none;
-}
-.note,
-table {
-  user-select: text;
 }

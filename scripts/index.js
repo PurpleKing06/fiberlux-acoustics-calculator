@@ -1,34 +1,11 @@
-// ===== Fiberlux Acoustics Calculator — physics =====
+// ===== index.js — material calculator (needs common.js) =====
 
-// --- complex numbers ---
-const C = (re, im = 0) => ({ re, im });
-const add = (a, b) => C(a.re + b.re, a.im + b.im);
-const mul = (a, b) => C(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re);
-const div = (a, b) => {
-  const d = b.re * b.re + b.im * b.im;
-  return C((a.re * b.re + a.im * b.im) / d, (a.im * b.re - a.re * b.im) / d);
-};
-const tan = (z) => {
-  const a = 2 * z.re,
-    b = 2 * z.im,
-    d = Math.cos(a) + Math.cosh(b);
-  return C(Math.sin(a) / d, Math.sinh(b) / d);
-};
-const abs = (z) => Math.hypot(z.re, z.im);
-// complex square root, branch with Im <= 0 when z.im < 0 (decaying wave)
-const sqrtC = (z) => {
-  const r = abs(z);
-  return C(Math.sqrt((r + z.re) / 2), (z.im < 0 ? -1 : 1) * Math.sqrt((r - z.re) / 2));
-};
+// ---------- physics ----------
 
-// --- physics constants ---
-const RHO0 = 1.21; // air density [kg/m³]
-const C0 = 343; // speed of sound [m/s]
-const Z0 = RHO0 * C0; // characteristic impedance of air [Pa·s/m]
 const OCTAVES = [250, 500, 1000, 2000, 4000]; // ISO 11654 rating bands [Hz]
 
 // Airflow resistivity [Pa·s/m²], least-squares power fit to Rubino et al. (2023):
-// TW-68: 17 400 | TW-96: 31 700 | TW-134: 95 500  (measured, airlaid textile waste)
+// TW-68: 17 400 | TW-96: 31 700 | TW-134: 95 500  (measured, airlaid textile fibres)
 // Valid only for 68–134 kg/m³; outside this range it is an extrapolation.
 const sigma = (rho) => 15900 * Math.pow(rho / 68, 2.5);
 
@@ -117,4 +94,78 @@ function rate(p) {
   return { aw, cls, nrc };
 }
 
-const $ = (id) => document.getElementById(id);
+// ---------- user interface ----------
+
+function readInputs() {
+  return { t: +$("t").value, r: +$("r").value, g: +$("g").value, m: $("m").value };
+}
+
+function update() {
+  const { t, r, g, m } = readInputs();
+  $("vt").textContent = t;
+  $("vr").textContent = r;
+  $("vg").textContent = g;
+
+  const aD = BANDS.map((f) => alphaDiffuse(f, t, r, g, m));
+  const aN = BANDS.map((f) => alphaNormal(f, t, r, g, m));
+
+  // rating uses diffuse-field values (as in a reverberation room), 250…4000 Hz
+  const res = rate(aD.slice(1));
+  $("cls").textContent = res.cls;
+  $("aw").textContent = f2(res.aw);
+  $("nrc").textContent = f2(res.nrc);
+
+  const w = rangeWarning(r, m);
+  $("warn").textContent = w;
+  $("warn").hidden = !w;
+
+  const row = (label, arr) =>
+    `<tr><td>${label}</td>` + arr.map((v) => `<td>${f2(v)}</td>`).join("") + "</tr>";
+  $("tab").innerHTML =
+    "<tr><th>Hz</th>" +
+    BANDS.map((f) => `<th>${f}</th>`).join("") +
+    "</tr>" +
+    row("α diffuse", aD) +
+    row("α normal", aN);
+
+  draw(t, r, g, m);
+}
+
+function draw(t, r, g, m) {
+  const { x, W, H, narrow } = setupCanvas($("c"));
+  const L = 34,
+    B = 24,
+    T = 10,
+    R = 10;
+  const fy = (v) => H - B - v * (H - B - T);
+  const fx = (f) => L + (Math.log(f / 100) / Math.log(5000 / 100)) * (W - L - R);
+
+  drawGrid(x, { L, R, W, max: 1, step: 0.2, fy });
+  x.textAlign = "center";
+  (narrow ? [125, 500, 2000] : BANDS).forEach((f) => x.fillText(freqLabel(f), fx(f), H - B / 2));
+
+  const curve = (fn) => {
+    const pts = [];
+    for (let f = 100; f <= 5000; f *= 1.04) pts.push([fx(f), fy(fn(f))]);
+    return pts;
+  };
+  drawLine(
+    x,
+    curve((f) => alphaNormal(f, t, r, g, m)),
+    cssVar("--muted"),
+    1.5,
+    [5, 4],
+  );
+  drawLine(
+    x,
+    curve((f) => alphaDiffuse(f, t, r, g, m, 30)),
+    cssVar("--accent"),
+    3,
+  );
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  ["t", "r", "g", "m"].forEach((id) => $(id).addEventListener("input", update));
+  onResize($("c"), update);
+  update();
+});

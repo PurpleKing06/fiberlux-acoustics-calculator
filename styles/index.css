@@ -1,0 +1,16 @@
+/* ===== index.css — material calculator ===== */
+
+.warn {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+.sw.solid {
+  border-top: 3px solid var(--accent);
+}
+.sw.dash {
+  border-top: 2px dashed var(--muted);
+}
