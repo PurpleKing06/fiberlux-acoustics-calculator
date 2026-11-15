@@ -241,7 +241,18 @@ function downloadPdf() {
   if (!window.jspdf) return window.print(); // fallback if the library did not load
   const { inp, r } = last;
   const doc = new window.jspdf.jsPDF();
-  const label = (id) => $(id).selectedOptions[0].text; // text as shown on the page
+  const NAMES = {
+  concrete: "Concrete",
+  gypsum: "Gypsum board",
+  wood: "Wood",
+  carpet: "Carpet",
+  linoleum: "Linoleum",
+  L: "Length",
+  W: "Width",
+  H: "Height",
+  win: "Window area",
+  };
+  const label = (id) => NAMES[$(id).value];
   let y = 20;
   const ln = (text, size = 11, gap = 7) => {
     doc.setFontSize(size);
@@ -254,7 +265,7 @@ function downloadPdf() {
   const limited = ["L", "W", "H", "win"].filter((id) => $(id).classList.contains("out"));
   if (limited.length)
     ln(
-      `Note: ${limited.map((id) => $(id).labels[0].textContent).join(", ")} outside the allowed range — limit value used.`,
+      `Note: ${limited.map((id) => NAMES[id]).join(", ")} outside the allowed range — limit value used.`,
       9,
       6,
     );
