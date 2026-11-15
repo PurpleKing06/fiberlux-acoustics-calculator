@@ -1,4 +1,4 @@
-# Fiberlux acoustic calculator
+# Fiberlux Studio
  
 **Fibre reborn — acoustic materials from post-consumer textile fibre.**
  
@@ -29,7 +29,7 @@ Typical requirements: class A–B for offices, studios and classrooms; C–D for
  
 ## How to use
  
-Open `index.html` in any modern browser, or use the GitHub Pages version. No installation, server or external libraries are needed. Works on desktop and mobile.
+Open `index.html` in any modern browser, or use the GitHub Pages version. No installation or server needed; the room calculator loads jsPDF for PDF export. Works on desktop and mobile.
  
 - **Thickness** (10–100 mm) — thicker felt absorbs more low-frequency sound.
 - **Density** (50–140 kg/m³) — too low lets sound pass through, too high reflects it.
@@ -60,10 +60,14 @@ Open `index.html` in any modern browser, or use the GitHub Pages version. No ins
  
 | File | Purpose |
 |---|---|
-| `index.html` | Page structure and controls |
-| `index.js` | Physics: felt model, absorption, ISO 11654 rating |
-| `chart.js` | Interface: results, table, chart |
-| `style.css` | Layout, light/dark theme, mobile layout |
+| `index.html` | Material calculator |
+| `room.html` | Room calculator: panel area, reverberation time, PDF |
+| `scripts/common.js` | Shared helpers: complex maths, constants, chart drawing |
+| `scripts/index.js` | Material model, ISO 11654 rating, interface |
+| `scripts/room.js` | Room model (Sabine), panel sizing, PDF export |
+| `styles/global.css` | Shared layout, colours, light/dark theme, mobile |
+| `styles/index.css` | Material calculator styles |
+| `styles/room.css` | Room calculator styles |
  
 ## Limits and assumptions
  
@@ -77,7 +81,6 @@ Open `index.html` in any modern browser, or use the GitHub Pages version. No ins
  
 1. **Calibration on Fiberlux felt** — replace literature values with airflow resistivity measured on Fiberlux samples in laboratory tests during the EIT Spark programme.
 2. **Validation** — compare predictions with impedance-tube (ISO 10534-2) and reverberation-room (ISO 354) measurements; publish the deviation.
-3. **Room calculator** — from room dimensions and requirements to the panel area and thickness needed.
  
 ## Sources
  
@@ -90,9 +93,11 @@ Open `index.html` in any modern browser, or use the GitHub Pages version. No ins
 - EN ISO 354:2003 — Acoustics. Measurement of sound absorption in a reverberation room.
  
 ## About
- 
-Fiberlux · [fiberlux.ee](https://www.fiberlux.ee)
- 
-Version 0.2 — diffuse-field estimate, Miki model, validity warning, mobile layout.
+
+**Fiberlux** · [fiberlux.ee](https://www.fiberlux.ee)
+
+**Live calculator:** https://purpleking06.github.io/fiberlux-acoustics-calculator/
+
+Version 0.3 — room calculator, panel sizing and PDF specification.
  
 © 2026 Martin Toom & Kristen Toom. All rights reserved.

@@ -128,7 +128,7 @@ function variantCard(v, target) {
       `</div>`;
     html +=
       `<div class="hint">Result: <b class="${t > target * 1.05 ? "bad" : "ok"}">${f2(t)} s</b>` +
-      ` · Textile: ${Math.round(v.kg)} kg</div>`;
+      ` · Secondary fibre: ${Math.round(v.kg)} kg</div>`;
   }
   if (!v.feasible)
     html += `<div class="warnline">Not enough ceiling and wall area for this product — choose a thicker panel.</div>`;
@@ -214,7 +214,7 @@ function downloadPdf() {
     doc.text(text, 20, y);
     y += gap;
   };
-  ln("Fiberlux — Room acoustics specification", 16, 10);
+  ln("Fiberlux Studio — Room acoustics specification", 16, 10);
   ln(`Date: ${new Date().toISOString().slice(0, 10)}`, 10, 10);
   ln(`Room: ${inp.typeName}, ${inp.L} x ${inp.W} x ${inp.H} m (V = ${f1(r.V)} m³)`);
   ln(
@@ -232,12 +232,13 @@ function downloadPdf() {
       10,
       5,
     );
-    ln(`  Result (500–1000 Hz): ${f2(tmid(v.T1))} s; textile used: ${Math.round(v.kg)} kg`, 10, 5);
+    ln(`  Result (500–1000 Hz): ${f2(tmid(v.T1))} s; secondary fibre: ${Math.round(v.kg)} kg`, 10, 5);
     if (!v.feasible) ln("  Not enough surface area for this product.", 10, 5);
     if (v.bass) ln("  Bass stays above 1.5 x target: use Premium or an air gap.", 10, 5);
     y += 4;
   });
   y += 4;
+  ln("CO2 data: to be assessed during the EIT Spark programme.", 10, 8);
   ln("Indicative values. Empty room, Sabine formula; less accurate when absorption", 9, 5);
   ln("is concentrated on one surface. Laboratory validation during the EIT Spark programme.", 9, 5);
   ln("fiberlux.ee", 9, 5);

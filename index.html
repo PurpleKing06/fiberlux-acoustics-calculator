@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fiberlux Acoustics Calculator v0.2</title>
+    <title>Fiberlux Studio — Material Calculator v0.2</title>
     <link rel="stylesheet" href="styles/global.css" />
     <link rel="stylesheet" href="styles/index.css" />
   </head>
@@ -12,8 +12,8 @@
       <nav class="top" style="font-size: 0.9rem; margin-bottom: 12px">
         <a href="room.html">Room calculator →</a>
       </nav>
-      <h1>Fiberlux Acoustics Calculator v0.2</h1>
-      <p class="sub">Calculated estimate of the sound absorption of felt made from textile waste</p>
+      <h1>Fiberlux Studio — Material Calculator v0.2</h1>
+      <p class="sub">Calculated estimate of the sound absorption of secondary fibre felt</p>
 
       <div class="card grid">
         <div>
@@ -28,7 +28,7 @@
         </div>
         <div>
           <label for="g">Air gap behind panel: <span class="val" id="vg"></span> mm</label>
-          <input id="g" type="range" min="0" max="200" step="10" value="0" />
+          <input id="g" type="range" min="0" max="200" step="10" value="200" />
           <div class="hint">0 = directly on the wall; 200 = suspended ceiling</div>
         </div>
         <div>
@@ -57,6 +57,7 @@
           <div class="big" id="nrc"></div>
         </div>
       </div>
+      <p class="hint">CO2 data: to be assessed during the EIT Spark programme</p>
 
       <div class="card">
         <div class="legend">
@@ -70,7 +71,7 @@
       <p class="note">
         Computational estimate based on a scientific model, not a laboratory measurement. Felt
         model: Delany–Bazley (1970) or Miki (1990). Airflow resistivity is calibrated on measured
-        airlaid panels made from textile waste (Rubino et al., 2023). Class, αw and NRC are
+        airlaid panels made from secondary textile fibre (Rubino et al., 2023). Class, αw and NRC are
         calculated for diffuse sound (Paris integral, extended reaction) following the ISO 11654
         method from octave values; a reverberation-room measurement (ISO 354) can differ.
       </p>
