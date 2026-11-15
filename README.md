@@ -92,6 +92,7 @@ Open `index.html` in any modern browser, or use the GitHub Pages version. No ins
 ## About
 
 **Fiberlux** · [fiberlux.ee](https://fiberlux.ee)
+
 Live calculator: https://purpleking06.github.io/fiberlux-acoustics-calculator/
 
 Version 0.3 — room calculator, panel sizing and PDF specification; code split into `styles/` and `scripts/`.
